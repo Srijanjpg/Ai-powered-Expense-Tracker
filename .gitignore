@@ -1,0 +1,5 @@
+node_modules/
+expense_tracker.db
+.env
+.env.local
+.env.*.local

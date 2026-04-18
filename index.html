@@ -4,17 +4,32 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="style.css">
     <title>Expense Tracker</title>
 </head>
 <body>
     <div id="login-overlay" class="login-overlay">
         <form id="login-form" class="login-form">
-            <h2 class="accent-heading">Welcome!</h2>
-            <input type="text" id="login-username" placeholder="Enter your name" required autofocus>
-            <button type="submit" class="add-btn">Continue</button>
+            <h2 class="accent-heading" id="auth-heading">Sign In</h2>
+
+            <label for="login-username" class="sr-only">Username</label>
+            <input type="text" id="login-username" placeholder="Username" required autofocus>
+
+            <label for="login-password" class="sr-only">Password</label>
+            <input type="password" id="login-password" placeholder="Password" required>
+
+            <div id="confirm-password-group" hidden>
+                <label for="login-password-confirm" class="sr-only">Confirm password</label>
+                <input type="password" id="login-password-confirm" placeholder="Confirm password">
+            </div>
+
+            <button type="submit" class="add-btn" id="auth-submit-btn">Sign In</button>
+            <button type="button" class="cancel-btn" id="auth-toggle-btn">Create account</button>
+            <p id="auth-message" class="auth-message" role="status" aria-live="polite"></p>
         </form>
     </div>
+
     <div class="main-bg" style="display:none;">
         <div class="dashboard">
             <div class="summary-card">
@@ -23,36 +38,92 @@
                     <div class="total-label">Total :</div>
                     <div class="total-amount" id="total-amount-display">₹ 0.00</div>
                 </div>
+                <div class="category-summary">
+                    <div class="category-heading">Category Totals</div>
+                    <ul class="category-list" id="category-list"></ul>
+                </div>
                 <div class="breakdown-label">Breakdown</div>
                 <ul class="breakdown-list" id="breakdown-list"></ul>
             </div>
+
             <div class="form-card">
                 <div class="profile-row">
                     <div class="profile-pic"></div>
                     <div class="profile-name" id="profile-name">User Name</div>
+                    <button type="button" class="logout-btn" id="logout-btn">Logout</button>
                 </div>
+
                 <form id="expense-form" autocomplete="off">
+                    <div id="natural-language-section" class="natural-language-section">
+                        <div class="nl-header">
+                            <p class="nl-label">Describe your expense</p>
+                            <p class="nl-subtext">Write it like a sentence</p>
+                        </div>
+
+                        <div class="input-row nl-input-row">
+                            <input type="text" id="nl-input" placeholder="Example: Booked a cafe table for 2500 today">
+                        </div>
+
+                        <button type="button" class="add-btn" id="parse-expense-btn">
+                            <span class="gemini-mark" aria-hidden="true"></span>
+                            <span id="parse-expense-label">Fill with Gemini</span>
+                        </button>
+                        <p id="nl-message" class="nl-message" role="status" aria-live="polite"></p>
+                    </div>
+
+                    <label for="amount-input" class="sr-only">Amount</label>
                     <div class="input-row">
                         <span class="input-icon">₹</span>
                         <input type="number" id="amount-input" placeholder="Amount" min="0.01" step="0.01" required>
                     </div>
+
+                    <label for="desc-input" class="sr-only">Description</label>
                     <div class="input-row">
                         <span class="input-icon">🏷️</span>
                         <input type="text" id="desc-input" placeholder="Description" required>
                     </div>
-                    <div class="radio-row">
-                        <label><input type="radio" name="category" value="Food/Beverage" checked>Food/Beverage</label>
-                        <label><input type="radio" name="category" value="Travel/Commute">Travel/Commute</label>
-                        <label><input type="radio" name="category" value="Shopping">Shopping</label>
+
+                    <fieldset class="category-fieldset">
+                        <legend>Category</legend>
+                        <div class="radio-row">
+                            <label class="category-option">
+                                <input type="radio" name="category" value="Food/Beverage" checked>
+                                <span>Food/Beverage</span>
+                            </label>
+                            <label class="category-option">
+                                <input type="radio" name="category" value="Travel/Commute">
+                                <span>Travel/Commute</span>
+                            </label>
+                            <label class="category-option">
+                                <input type="radio" name="category" value="Shopping">
+                                <span>Shopping</span>
+                            </label>
+                        </div>
+                        <p id="ai-category-hint" class="ai-category-hint" aria-live="polite"></p>
+                    </fieldset>
+
+                    <div class="date-section">
+                        <div class="date-header-row">
+                            <label for="date-input" class="date-label">Expense Date</label>
+                            <div class="date-quick-actions" role="group" aria-label="Quick date selection">
+                                <button type="button" class="date-quick-btn" id="date-quick-yesterday">Yesterday</button>
+                                <button type="button" class="date-quick-btn" id="date-quick-today">Today</button>
+                            </div>
+                        </div>
+                        <div class="input-row date-input-row">
+                            <span class="input-icon">🗓️</span>
+                            <input type="text" id="date-input" placeholder="Select date" required>
+                        </div>
                     </div>
-                    <div class="input-row">
-                        <input type="date" id="date-input" required>
-                    </div>
-                    <button type="submit" class="add-btn">Add to Expense</button>
+
+                    <button type="submit" class="add-btn" id="submit-expense-btn">Add to Expense</button>
+                    <button type="button" class="cancel-btn" id="cancel-edit-btn" hidden>Cancel Edit</button>
                 </form>
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="script.js"></script>
 </body>
 </html>
