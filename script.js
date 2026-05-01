@@ -357,7 +357,7 @@ async function apiRequest(path, options, retryOn401) {
     }
 
     if (!response.ok) {
-        const errorMessage = data && data.error ? data.error : 'Request failed';
+        const errorMessage = data && (data.error || data.detail) ? (data.error || data.detail) : 'Request failed';
         throw new Error(errorMessage);
     }
 
