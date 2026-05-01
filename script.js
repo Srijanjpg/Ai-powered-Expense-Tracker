@@ -16,6 +16,7 @@ const loginForm = document.getElementById('login-form');
 const loginUsername = document.getElementById('login-username');
 const loginPassword = document.getElementById('login-password');
 const loginPasswordConfirm = document.getElementById('login-password-confirm');
+const togglePasswordButtons = document.querySelectorAll('.toggle-password');
 const confirmPasswordGroup = document.getElementById('confirm-password-group');
 const authHeading = document.getElementById('auth-heading');
 const authSubmitBtn = document.getElementById('auth-submit-btn');
@@ -269,9 +270,28 @@ function setAuthMode(registerMode) {
 
     setAuthMessage('', '');
 
+    resetPasswordVisibility();
+
     if (loginUsername) {
         loginUsername.focus();
     }
+}
+
+function setPasswordVisibility(input, button, isVisible) {
+    if (!input || !button) return;
+
+    input.type = isVisible ? 'text' : 'password';
+    button.classList.toggle('is-visible', isVisible);
+    button.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
+    button.setAttribute('aria-label', isVisible ? 'Hide password' : 'Show password');
+    button.setAttribute('title', isVisible ? 'Hide password' : 'Show password');
+}
+
+function resetPasswordVisibility() {
+    const mainToggle = document.querySelector('[data-target="login-password"]');
+    const confirmToggle = document.querySelector('[data-target="login-password-confirm"]');
+    setPasswordVisibility(loginPassword, mainToggle, false);
+    setPasswordVisibility(loginPasswordConfirm, confirmToggle, false);
 }
 
 function isStrongPassword(password) {
@@ -807,6 +827,18 @@ if (nlInput) {
             event.preventDefault();
             handleParseExpense();
         }
+    });
+}
+
+if (togglePasswordButtons && togglePasswordButtons.length) {
+    togglePasswordButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            const targetId = button.getAttribute('data-target');
+            const targetInput = targetId ? document.getElementById(targetId) : null;
+            if (!targetInput) return;
+            const isVisible = targetInput.type === 'password';
+            setPasswordVisibility(targetInput, button, isVisible);
+        });
     });
 }
 

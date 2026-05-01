@@ -5,3 +5,4 @@ expense_tracker.db
 .env.*.local
 __pycache__/
 *.pyc
+STARTUP_COMMANDS.txt

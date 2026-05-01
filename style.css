@@ -861,6 +861,86 @@ body {
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+
+.login-form .password-row {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 44px;
+    border-radius: 10px;
+    border: 1px solid #d2ddff;
+    background: #f8fbff;
+    padding: 0 12px;
+    gap: 6px;
+    align-items: center;
+}
+
+.login-form .password-row:focus-within {
+    border-color: #a7beff;
+    box-shadow: 0 0 0 4px rgba(79, 120, 230, 0.14);
+}
+
+
+.login-form .password-row input,
+.login-form .password-row #login-password,
+.login-form .password-row #login-password-confirm {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 10px 0 !important;
+    min-height: 0;
+    height: auto;
+    line-height: normal;
+    caret-color: var(--text-primary);
+}
+
+.login-form .password-row .toggle-password {
+    color: #6b7fb0;
+    background: transparent;
+    border: none;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.login-form .password-row .toggle-password:hover {
+    background: rgba(86, 110, 170, 0.12);
+    color: #2f446f;
+}
+
+.login-form .password-row .toggle-password:active {
+    transform: scale(0.98);
+}
+
+.login-form .password-row .eye-icon {
+    width: 18px;
+    height: 18px;
+    display: block;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.login-form .password-row .eye-closed {
+    display: none;
+}
+
+.login-form .password-row .toggle-password.is-visible .eye-open {
+    display: none;
+}
+
+.login-form .password-row .toggle-password.is-visible .eye-closed {
+    display: inline;
+}
+
 #login-username:focus,
 #login-password:focus,
 #login-password-confirm:focus {

@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
     <title>Expense Tracker</title>
 </head>
 <body>
@@ -17,11 +17,35 @@
             <input type="text" id="login-username" placeholder="Username" required autofocus>
 
             <label for="login-password" class="sr-only">Password</label>
-            <input type="password" id="login-password" placeholder="Password" required>
+            <div class="input-row password-row">
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button type="button" class="toggle-password" data-target="login-password" aria-label="Show password" aria-pressed="false" title="Show password">
+                    <svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path class="eye-open" d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"></path>
+                        <circle class="eye-open" cx="12" cy="12" r="3"></circle>
+                        <path class="eye-closed" d="M3 3l18 18"></path>
+                        <path class="eye-closed" d="M2 12s4-7 10-7c2.1 0 4 .7 5.5 1.7"></path>
+                        <path class="eye-closed" d="M22 12s-1.6 2.8-4.6 4.8"></path>
+                        <path class="eye-closed" d="M14.5 14.5A3 3 0 0 1 9.5 9.5"></path>
+                    </svg>
+                </button>
+            </div>
 
             <div id="confirm-password-group" hidden>
                 <label for="login-password-confirm" class="sr-only">Confirm password</label>
-                <input type="password" id="login-password-confirm" placeholder="Confirm password">
+                <div class="input-row password-row">
+                    <input type="password" id="login-password-confirm" placeholder="Confirm password">
+                    <button type="button" class="toggle-password" data-target="login-password-confirm" aria-label="Show password" aria-pressed="false" title="Show password">
+                        <svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path class="eye-open" d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"></path>
+                            <circle class="eye-open" cx="12" cy="12" r="3"></circle>
+                            <path class="eye-closed" d="M3 3l18 18"></path>
+                            <path class="eye-closed" d="M2 12s4-7 10-7c2.1 0 4 .7 5.5 1.7"></path>
+                            <path class="eye-closed" d="M22 12s-1.6 2.8-4.6 4.8"></path>
+                            <path class="eye-closed" d="M14.5 14.5A3 3 0 0 1 9.5 9.5"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="add-btn" id="auth-submit-btn">Sign In</button>
@@ -124,6 +148,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=2"></script>
 </body>
 </html>
