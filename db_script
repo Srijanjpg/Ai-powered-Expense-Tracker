@@ -1,0 +1,8 @@
+sqlite3 expense_tracker.db "SELECT id, username FROM users ORDER BY id;" | while IFS='|' read -r uid uname; do
+echo
+echo "=============================="
+echo "User: $uname (ID: $uid)"
+echo "=============================="
+sqlite3 -header -box expense_tracker.db "SELECT id, amount, description, category, expense_date, created_at FROM expenses WHERE user_id = $uid ORDER BY id DESC;"
+sqlite3 -header -box expense_tracker.db "SELECT COUNT(*) AS total_entries, COALESCE(SUM(amount),0) AS total_spent FROM expenses WHERE user_id = $uid;"
+done
