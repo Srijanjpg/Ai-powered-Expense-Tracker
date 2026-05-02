@@ -25,10 +25,6 @@ from passlib.context import CryptContext
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
-load_dotenv()
-
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://expense_user@localhost:5432/expense_tracker")
-
 # ----------------------------
 # Settings (mirrors server.js)
 # ----------------------------
