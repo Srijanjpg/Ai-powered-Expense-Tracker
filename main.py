@@ -4,6 +4,12 @@ import csv
 import io
 from datetime import datetime, timedelta
 from pathlib import Path
+from dotenv import load_dotenv
+
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(dotenv_path=BASE_DIR / ".env", override=False)
+
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://expense_user@localhost:5432/expense_tracker")
 from typing import Optional
 
 import boto3
