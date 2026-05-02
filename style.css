@@ -890,7 +890,7 @@ body {
     padding: 24px;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     gap: 12px;
     animation: riseIn 0.5s ease;
 }
@@ -921,6 +921,10 @@ body {
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+#confirm-password-group {
+    width: 100%;
+    box-sizing: border-box;
+}
 
 .login-form .password-row {
     width: 100%;
@@ -932,6 +936,12 @@ body {
     padding: 0 12px;
     gap: 6px;
     align-items: center;
+}
+
+.login-form > input,
+.login-form > .input-row,
+#confirm-password-group .password-row {
+    width: 100%;
 }
 
 .login-form .password-row:focus-within {

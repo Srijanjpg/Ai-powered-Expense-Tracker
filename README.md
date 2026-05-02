@@ -7,7 +7,7 @@ pip install -r requirements.txt
 
 Create a `.env` file:
 
-DATABASE_URL=postgresql://expense_user:YOUR_PASSWORD@localhost:5432/expense_tracker
+DATABASE_URL=postgresql://expense_user:expense_password@postgres:5432/expense_tracker
 JWT_SECRET=YOUR_STRONG_SECRET
 GEMINI_API_KEY=YOUR_GEMINI_KEY
 GEMINI_MODEL=gemini-1.5-flash
@@ -17,6 +17,13 @@ S3_DOWNLOAD_TTL_SECONDS=600
 
 ## Run
 uvicorn main:app --reload --port 3000
+
+## Docker deployment
+See `DOCKER_EC2_DEPLOYMENT.md` for the phased local Docker and EC2 deployment guide.
+
+Quick Docker start:
+
+docker compose -f docker-compose.local.yml up --build
 
 ## Export expenses to S3
 Authenticated users can call:
