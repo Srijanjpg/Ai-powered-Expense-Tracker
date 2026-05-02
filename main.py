@@ -9,6 +9,7 @@ from typing import Optional
 import boto3
 import httpx
 import psycopg
+from botocore.config import Config
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Response, HTTPException, Depends
 from fastapi.responses import FileResponse
@@ -32,6 +33,7 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "")
 S3_EXPORT_PREFIX = os.getenv("S3_EXPORT_PREFIX", "exports")
 S3_DOWNLOAD_TTL_SECONDS = int(os.getenv("S3_DOWNLOAD_TTL_SECONDS", "600"))
+AWS_REGION = os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION") or "ap-south-1"
 
 ACCESS_TOKEN_TTL_SECONDS = 15 * 60
 REFRESH_TOKEN_TTL_DAYS = 7
@@ -363,7 +365,11 @@ async def upload_csv_to_s3(user_id: int, csv_content: str):
     object_key = f"{safe_prefix}/user-{user_id}/expenses-{timestamp}.csv" if safe_prefix else f"user-{user_id}/expenses-{timestamp}.csv"
 
     def _upload():
-        s3 = boto3.client("s3")
+        s3 = boto3.client(
+            "s3",
+            region_name=AWS_REGION,
+            config=Config(signature_version="s3v4"),
+        )
         s3.put_object(
             Bucket=S3_BUCKET_NAME,
             Key=object_key,

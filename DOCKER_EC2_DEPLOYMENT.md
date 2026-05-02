@@ -21,6 +21,7 @@ GEMINI_MODEL=gemini-1.5-flash
 S3_BUCKET_NAME=your-private-export-bucket
 S3_EXPORT_PREFIX=exports
 S3_DOWNLOAD_TTL_SECONDS=600
+AWS_REGION=ap-south-1
 PORT=3000
 ```
 
@@ -180,6 +181,7 @@ GEMINI_MODEL=gemini-1.5-flash
 S3_BUCKET_NAME=your-private-export-bucket
 S3_EXPORT_PREFIX=exports
 S3_DOWNLOAD_TTL_SECONDS=600
+AWS_REGION=ap-south-1
 PORT=3000
 NODE_ENV=production
 ```
