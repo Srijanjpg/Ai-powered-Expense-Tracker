@@ -74,8 +74,12 @@
                 <div class="profile-row">
                     <div class="profile-pic"></div>
                     <div class="profile-name" id="profile-name">User Name</div>
-                    <button type="button" class="logout-btn" id="logout-btn">Logout</button>
+                    <div class="profile-actions">
+                        <button type="button" class="export-btn" id="export-expenses-btn">Export CSV</button>
+                        <button type="button" class="logout-btn" id="logout-btn">Logout</button>
+                    </div>
                 </div>
+                <p id="export-message" class="export-message" role="status" aria-live="polite"></p>
 
                 <form id="expense-form" autocomplete="off">
                     <div id="natural-language-section" class="natural-language-section">
@@ -148,6 +152,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="script.js?v=2"></script>
+    <script src="script.js?v=3"></script>
 </body>
 </html>

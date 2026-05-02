@@ -1,9 +1,12 @@
 import os
 import secrets
+import csv
+import io
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
+import boto3
 import httpx
 import psycopg
 from dotenv import load_dotenv
@@ -26,6 +29,9 @@ PORT = int(os.getenv("PORT", "3000"))
 JWT_SECRET = os.getenv("JWT_SECRET", "dev_only_change_this_secret")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "")
+S3_EXPORT_PREFIX = os.getenv("S3_EXPORT_PREFIX", "exports")
+S3_DOWNLOAD_TTL_SECONDS = int(os.getenv("S3_DOWNLOAD_TTL_SECONDS", "600"))
 
 ACCESS_TOKEN_TTL_SECONDS = 15 * 60
 REFRESH_TOKEN_TTL_DAYS = 7
@@ -333,6 +339,51 @@ def suggest_category_from_keywords(description: str):
     if has_any(shopping_terms):
         return {"category": "Shopping", "source": "fallback"}
     return {"category": None, "source": "fallback"}
+
+def build_expenses_csv(expenses):
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["id", "amount", "description", "category", "date"])
+    for expense in expenses:
+        writer.writerow([
+            expense["id"],
+            f"{expense['amount']:.2f}",
+            expense["description"],
+            expense["category"],
+            expense["date"],
+        ])
+    return output.getvalue()
+
+async def upload_csv_to_s3(user_id: int, csv_content: str):
+    if not S3_BUCKET_NAME:
+        raise HTTPException(status_code=500, detail="S3 bucket is not configured.")
+
+    timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    safe_prefix = S3_EXPORT_PREFIX.strip("/ ")
+    object_key = f"{safe_prefix}/user-{user_id}/expenses-{timestamp}.csv" if safe_prefix else f"user-{user_id}/expenses-{timestamp}.csv"
+
+    def _upload():
+        s3 = boto3.client("s3")
+        s3.put_object(
+            Bucket=S3_BUCKET_NAME,
+            Key=object_key,
+            Body=csv_content.encode("utf-8"),
+            ContentType="text/csv; charset=utf-8",
+            ContentDisposition=f'attachment; filename="expenses-{timestamp}.csv"',
+            ServerSideEncryption="AES256",
+        )
+        return s3.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": S3_BUCKET_NAME, "Key": object_key},
+            ExpiresIn=S3_DOWNLOAD_TTL_SECONDS,
+        )
+
+    try:
+        download_url = await run_in_threadpool(_upload)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail="Could not export expenses to S3.") from exc
+
+    return object_key, download_url
 
 # ----------------------------
 # Rate limiting (in-memory)
@@ -654,6 +705,23 @@ async def delete_expense(expense_id: int, user=Depends(get_current_user)):
     if result["changes"] == 0:
         raise HTTPException(status_code=404, detail="Expense not found.")
     return {"success": True}
+
+@app.get("/export")
+async def export_expenses(user=Depends(get_current_user)):
+    rows = await get_all("""
+        SELECT id, amount, description, category, expense_date
+        FROM expenses
+        WHERE user_id = %s
+        ORDER BY expense_date DESC, id DESC
+    """, (user["id"],))
+    expenses = [normalize_expense(r) for r in rows]
+    csv_content = build_expenses_csv(expenses)
+    object_key, download_url = await upload_csv_to_s3(user["id"], csv_content)
+    return {
+        "downloadUrl": download_url,
+        "expiresInSeconds": S3_DOWNLOAD_TTL_SECONDS,
+        "s3Key": object_key,
+    }
 
 # ----------------------------
 # Static file serving

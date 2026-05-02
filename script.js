@@ -23,6 +23,8 @@ const authSubmitBtn = document.getElementById('auth-submit-btn');
 const authToggleBtn = document.getElementById('auth-toggle-btn');
 const authMessage = document.getElementById('auth-message');
 const logoutBtn = document.getElementById('logout-btn');
+const exportExpensesBtn = document.getElementById('export-expenses-btn');
+const exportMessage = document.getElementById('export-message');
 const mainBg = document.querySelector('.main-bg');
 const nlInput = document.getElementById('nl-input');
 const parseExpenseBtn = document.getElementById('parse-expense-btn');
@@ -43,6 +45,26 @@ let isRegisterMode = false;
 let aiSuggestTimeoutId = null;
 let expenseDatePicker = null;
 let isParsingExpense = false;
+let isExportingExpenses = false;
+
+function setExportMessage(message, type) {
+    if (!exportMessage) return;
+
+    exportMessage.textContent = message || '';
+    exportMessage.className = 'export-message';
+
+    if (type) {
+        exportMessage.classList.add(type);
+    }
+}
+
+function setExportButtonState(isExporting) {
+    if (!exportExpensesBtn) return;
+
+    exportExpensesBtn.disabled = Boolean(isExporting);
+    exportExpensesBtn.setAttribute('aria-busy', isExporting ? 'true' : 'false');
+    exportExpensesBtn.textContent = isExporting ? 'Exporting...' : 'Export CSV';
+}
 
 function setParseExpenseButtonState(isRecording) {
     if (!parseExpenseBtn) return;
@@ -263,7 +285,7 @@ function setAuthMode(registerMode) {
         authSubmitBtn.textContent = 'Create Account';
         authToggleBtn.textContent = 'Already have an account? Sign in';
     } else {
-        authHeading.textContent = 'Sign In';
+        authHeading.textContent = 'Welcome';
         authSubmitBtn.textContent = 'Sign In';
         authToggleBtn.textContent = 'Create account';
     }
@@ -317,6 +339,7 @@ function showAuth() {
     accessToken = '';
     expenses = [];
     editExpenseId = null;
+    setExportMessage('', '');
     renderExpenses();
     loginOverlay.style.display = 'flex';
     mainBg.style.display = 'none';
@@ -670,6 +693,34 @@ async function handleLogout() {
     showAuth();
 }
 
+async function handleExportExpenses() {
+    if (isExportingExpenses) return;
+
+    isExportingExpenses = true;
+    setExportButtonState(true);
+    setExportMessage('Preparing your CSV...', 'muted');
+
+    try {
+        const result = await apiRequest('/export');
+        if (!result || !result.downloadUrl) {
+            throw new Error('Export finished, but no download link was returned.');
+        }
+
+        const downloadLink = document.createElement('a');
+        downloadLink.href = result.downloadUrl;
+        downloadLink.target = '_blank';
+        downloadLink.rel = 'noopener';
+        downloadLink.click();
+        setExportMessage('CSV ready. Your download link opened in a new tab.', 'success');
+    } catch (error) {
+        const message = error && error.message ? error.message : 'Could not export expenses right now.';
+        setExportMessage(message, 'error');
+    } finally {
+        isExportingExpenses = false;
+        setExportButtonState(false);
+    }
+}
+
 async function handleParseExpense() {
     if (isParsingExpense) return;
 
@@ -795,6 +846,10 @@ if (cancelEditBtn) {
 
 if (logoutBtn) {
     logoutBtn.addEventListener('click', handleLogout);
+}
+
+if (exportExpensesBtn) {
+    exportExpensesBtn.addEventListener('click', handleExportExpenses);
 }
 
 if (parseExpenseBtn) {
