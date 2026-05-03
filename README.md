@@ -76,11 +76,14 @@ S3_BUCKET_NAME=your-private-export-bucket
 S3_EXPORT_PREFIX=exports
 S3_DOWNLOAD_TTL_SECONDS=600
 AWS_REGION=ap-south-1
+S3_ENDPOINT_URL=
+S3_ADDRESSING_STYLE=auto
 ```
 
 Notes:
 - `GEMINI_API_KEY` / `GEMINI_MODEL` are used if AI categorization is enabled.
 - AWS credentials may come from the environment, IAM role (EC2), or standard AWS config.
+- Leave `S3_ENDPOINT_URL` empty for AWS S3. Set it only for S3-compatible providers, and use `S3_ADDRESSING_STYLE=path` if your provider does not support virtual-hosted bucket URLs.
 
 ## Run & Usage
 
@@ -127,4 +130,3 @@ If you add new env vars or services, update this `README.md` and the sample `.en
 This project is provided as-is. Add your license file if you wish to open-source it.
 
 For questions or help, open an issue or contact the maintainer.
-

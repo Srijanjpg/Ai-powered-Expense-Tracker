@@ -36,6 +36,8 @@ S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "")
 S3_EXPORT_PREFIX = os.getenv("S3_EXPORT_PREFIX", "exports")
 S3_DOWNLOAD_TTL_SECONDS = int(os.getenv("S3_DOWNLOAD_TTL_SECONDS", "600"))
 AWS_REGION = os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION") or "ap-south-1"
+S3_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL") or None
+S3_ADDRESSING_STYLE = os.getenv("S3_ADDRESSING_STYLE", "auto")
 
 ACCESS_TOKEN_TTL_SECONDS = 15 * 60
 REFRESH_TOKEN_TTL_DAYS = 7
@@ -45,6 +47,7 @@ EXPENSE_CATEGORIES = ["Food/Beverage", "Travel/Commute", "Shopping"]
 BASE_DIR = Path(__file__).resolve().parent
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+resolved_s3_region = None
 
 # ----------------------------
 # Database helpers
@@ -358,6 +361,36 @@ def build_expenses_csv(expenses):
         ])
     return output.getvalue()
 
+def create_s3_client(region_name: Optional[str] = None):
+    s3_config = {"addressing_style": S3_ADDRESSING_STYLE}
+    return boto3.client(
+        "s3",
+        region_name=region_name or AWS_REGION,
+        endpoint_url=S3_ENDPOINT_URL,
+        config=Config(signature_version="s3v4", s3=s3_config),
+    )
+
+def get_s3_bucket_region():
+    global resolved_s3_region
+    if resolved_s3_region:
+        return resolved_s3_region
+
+    if S3_ENDPOINT_URL:
+        resolved_s3_region = AWS_REGION
+        return resolved_s3_region
+
+    s3 = create_s3_client(AWS_REGION)
+    try:
+        response = s3.head_bucket(Bucket=S3_BUCKET_NAME)
+        headers = response.get("ResponseMetadata", {}).get("HTTPHeaders", {})
+        resolved_s3_region = headers.get("x-amz-bucket-region") or AWS_REGION
+    except Exception as exc:
+        response = getattr(exc, "response", {})
+        headers = response.get("ResponseMetadata", {}).get("HTTPHeaders", {})
+        resolved_s3_region = headers.get("x-amz-bucket-region") or AWS_REGION
+
+    return resolved_s3_region
+
 async def upload_csv_to_s3(user_id: int, csv_content: str):
     if not S3_BUCKET_NAME:
         raise HTTPException(status_code=500, detail="S3 bucket is not configured.")
@@ -367,11 +400,7 @@ async def upload_csv_to_s3(user_id: int, csv_content: str):
     object_key = f"{safe_prefix}/user-{user_id}/expenses-{timestamp}.csv" if safe_prefix else f"user-{user_id}/expenses-{timestamp}.csv"
 
     def _upload():
-        s3 = boto3.client(
-            "s3",
-            region_name=AWS_REGION,
-            config=Config(signature_version="s3v4"),
-        )
+        s3 = create_s3_client(get_s3_bucket_region())
         s3.put_object(
             Bucket=S3_BUCKET_NAME,
             Key=object_key,
