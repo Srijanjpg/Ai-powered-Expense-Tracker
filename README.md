@@ -31,11 +31,38 @@ A lightweight web app to record, analyze, and export personal expenses — enhan
 
 ## Tech Stack
 
-- Frontend: HTML, CSS, JavaScript (`index.html`, `script.js`, `style.css`)
-- Backend: Python (see `main.py`)
-- Database: PostgreSQL
-- Storage: AWS S3 for exports
-- DevOps: `Dockerfile`, `docker-compose.local.yml`
+- **Frontend**
+  - HTML5, CSS3, Vanilla JavaScript
+  - Flatpickr (date picker via CDN)
+
+- **Backend**
+  - Python 3.12
+  - FastAPI + Uvicorn
+  - Pydantic (request/response validation)
+
+- **Authentication & Security**
+  - JWT access tokens (`python-jose`)
+  - Refresh-token session flow with secure HTTP-only cookies
+  - Password hashing with `passlib` + `bcrypt`
+
+- **Database**
+  - PostgreSQL 16
+  - `psycopg` (PostgreSQL driver)
+
+- **AI Integration**
+  - Google Gemini API (model configurable via `GEMINI_MODEL`)
+  - `httpx` for Gemini API requests
+
+- **Cloud & Storage**
+  - AWS S3 for CSV export storage
+  - Pre-signed S3 URLs for time-limited downloads
+  - `boto3` + `botocore`
+
+- **Containerization & Deployment**
+  - Docker (`Dockerfile`)
+  - Docker Compose (`docker-compose.local.yml`) for app + Postgres stack
+  - AWS EC2 deployment workflow documented in `DOCKER_EC2_DEPLOYMENT.md`
+  - Nginx reverse proxy setup for EC2 production deployment
 
 ## Quick Start (dev)
 
