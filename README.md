@@ -1,33 +1,18 @@
-# Ai-Powered Expense Tracker
+# AI-Powered Expense Tracker
 
-A lightweight web app to record, analyze, and export personal expenses — enhanced with AI-powered categorization and smart export capabilities.
+A full-stack expense tracker for recording, categorizing, reviewing, and exporting personal expenses. The app combines a lightweight HTML/CSS/JavaScript frontend with a Python FastAPI backend, PostgreSQL persistence, optional Gemini-powered categorization, and S3 exports.
 
-**Highlights:**
-- Modern single-file frontend (`index.html`, `script.js`, `style.css`) with a simple Python backend (`main.py`).
-- Persistent storage via PostgreSQL and optional CSV export to AWS S3 with pre-signed URLs.
-- Docker-ready for local development and EC2 deployment.
-
---
-
-**Table of Contents**
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Quick Start (dev)](#quick-start-dev)
-- [Environment & Configuration](#environment--configuration)
-- [Run & Usage](#run--usage)
-- [Docker & Deployment](#docker--deployment)
-- [Exporting Data](#exporting-data)
-- [Contributing](#contributing)
-- [License & Contact](#license--contact)
-
---
+![Expense Tracker dashboard](demo.png)
 
 ## Features
 
-- Add, edit, and remove expenses from a simple UI
-- Automatic AI-assisted categorization (configurable model)
-- CSV export per-user uploaded to S3 with time-limited pre-signed download links
-- Configurable authentication via JWT
+- Create, edit, and delete expenses
+- Categorize expenses as Food/Beverage, Travel/Commute, or Shopping
+- Use Gemini to suggest a category from a natural-language description
+- View total spending, category totals, and an expense breakdown
+- Authenticate with JWT access tokens and refresh-token cookies
+- Export a user's expenses as CSV files uploaded to private S3 storage
+- Run locally with Docker Compose or a Python virtual environment
 
 ## Tech Stack
 
@@ -64,96 +49,116 @@ A lightweight web app to record, analyze, and export personal expenses — enhan
   - AWS EC2 deployment workflow documented in `DOCKER_EC2_DEPLOYMENT.md`
   - Nginx reverse proxy setup for EC2 production deployment
 
-## Quick Start (dev)
+## Quick Start With Docker
 
-1. Create and activate a Python virtual environment
+### Prerequisites
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-```
+- Docker Desktop with Docker Compose
+- A Gemini API key if AI categorization is required
+- AWS credentials and an S3 bucket if CSV export is required
 
-2. Install dependencies
+### Setup
 
-```bash
-pip install -r requirements.txt
-```
-
-3. Create a `.env` file (see below) and start the app
+From the project root:
 
 ```bash
-# from project root
-python main.py
-# or, if the app uses ASGI/uvicorn:
-uvicorn main:app --reload --port 3000
+cp .env.example .env
 ```
 
-Open the frontend at `http://localhost:3000` (or the port configured in the app).
+Update `.env` with a strong `JWT_SECRET`. The Docker Compose database connection is already configured for the local PostgreSQL container. Add `GEMINI_API_KEY` and `S3_BUCKET_NAME` when using those features.
 
-## Environment & Configuration
-
-Create a `.env` file in the project root and set at minimum:
-
-```
-DATABASE_URL=postgresql://expense_user:expense_password@postgres:5432/expense_tracker
-JWT_SECRET=YOUR_STRONG_SECRET
-GEMINI_API_KEY=YOUR_GEMINI_KEY
-GEMINI_MODEL=gemini-1.5-flash
-S3_BUCKET_NAME=your-private-export-bucket
-S3_EXPORT_PREFIX=exports
-S3_DOWNLOAD_TTL_SECONDS=600
-AWS_REGION=ap-south-1
-S3_ENDPOINT_URL=
-S3_ADDRESSING_STYLE=auto
-```
-
-Notes:
-- `GEMINI_API_KEY` / `GEMINI_MODEL` are used if AI categorization is enabled.
-- AWS credentials may come from the environment, IAM role (EC2), or standard AWS config.
-- Leave `S3_ENDPOINT_URL` empty for AWS S3. Set it only for S3-compatible providers, and use `S3_ADDRESSING_STYLE=path` if your provider does not support virtual-hosted bucket URLs.
-
-## Run & Usage
-
-- Start the backend server (see Quick Start).
-- The frontend served by the backend will allow creating and browsing expenses.
-- API: the app exposes endpoints (e.g., `/export`) to request CSV exports and other CRUD operations — consult `main.py` for the exact routes.
-
-## Exporting Data
-
-Authenticated users can request a CSV export of their expenses. The server will:
-
-1. Generate a per-user CSV
-2. Upload it to the configured S3 bucket under the `S3_EXPORT_PREFIX`
-3. Return a time-limited pre-signed download URL (`S3_DOWNLOAD_TTL_SECONDS` controls expiry)
-
-Example (local quick test):
-
-```bash
-curl -H "Authorization: Bearer <JWT>" http://localhost:3000/export
-```
-
-## Docker & Deployment
-
-- Local Docker (recommended for environment parity):
+Start the application:
 
 ```bash
 docker compose -f docker-compose.local.yml up --build
 ```
 
-- For EC2 deploy steps and a phased guide, see [DOCKER_EC2_DEPLOYMENT.md](DOCKER_EC2_DEPLOYMENT.md).
+Open [http://localhost:3000](http://localhost:3000) in a browser. Stop the services with `Ctrl+C`, or run the following to remove the containers:
+
+```bash
+docker compose -f docker-compose.local.yml down
+```
+
+PostgreSQL data is stored in the `postgres-data` Docker volume and remains available across restarts.
+
+## Local Python Development
+
+Use this option when PostgreSQL is installed and running on the host machine.
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --reload --port 3000
+```
+
+For host PostgreSQL, set `DATABASE_URL` in `.env` to a connection such as:
+
+```env
+DATABASE_URL=postgresql://expense_user:your_password@localhost:5432/expense_tracker
+```
+
+The API creates its required tables when the application starts.
+
+## Configuration
+
+Copy `.env.example` to `.env` and configure the values needed for your environment:
+
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `JWT_SECRET` | Secret used to sign authentication tokens |
+| `PORT` | Application port; defaults to `3000` |
+| `GEMINI_API_KEY` | Optional Gemini API key for categorization |
+| `GEMINI_MODEL` | Gemini model name |
+| `S3_BUCKET_NAME` | Private S3 bucket used for exports |
+| `S3_EXPORT_PREFIX` | Folder prefix for exported files |
+| `S3_DOWNLOAD_TTL_SECONDS` | Pre-signed URL lifetime |
+| `AWS_REGION` | AWS region for S3 |
+| `S3_ENDPOINT_URL` | Optional S3-compatible service endpoint |
+| `S3_ADDRESSING_STYLE` | S3 addressing mode, usually `auto` |
+
+Never commit `.env` or real API keys. AWS credentials can be provided through the standard AWS configuration, environment variables, or an EC2 IAM role.
+
+## Using the App
+
+1. Create an account or sign in.
+2. Enter an expense description, amount, category, and date.
+3. Use **Fill with Gemini** to get an AI-assisted description and category when Gemini is configured.
+4. Review totals and the expense breakdown on the dashboard.
+5. Select **Export CSV** to generate an export and receive a temporary download link when S3 is configured.
+
+## API
+
+The FastAPI server serves the frontend and API from the same origin. Available routes and request models are defined in [`main.py`](main.py). The interactive API documentation is available at [http://localhost:3000/docs](http://localhost:3000/docs) while the app is running.
+
+## Deployment
+
+For an EC2 deployment with Docker, PostgreSQL, and Nginx, see [`DOCKER_EC2_DEPLOYMENT.md`](DOCKER_EC2_DEPLOYMENT.md).
+
+The included [`Dockerfile`](Dockerfile) and [`docker-compose.local.yml`](docker-compose.local.yml) provide the base container setup.
+
+## Project Structure
+
+```text
+.
+├── main.py                  # FastAPI application and database schema setup
+├── index.html               # Frontend markup
+├── script.js                # Frontend behavior and API calls
+├── style.css                # Application styles
+├── demo.png                 # Dashboard screenshot
+├── requirements.txt         # Python dependencies
+├── Dockerfile               # Application image
+└── docker-compose.local.yml # Local app and PostgreSQL services
+```
 
 ## Contributing
 
-Contributions, issues, and feature requests are welcome. Suggested workflow:
+1. Create a feature branch.
+2. Make and test your changes locally.
+3. Update the README or `.env.example` when configuration changes.
+4. Open a pull request with a clear description of the change.
 
-1. Fork the repo
-2. Create a branch for your feature/fix
-3. Open a pull request describing your change
+## License
 
-If you add new env vars or services, update this `README.md` and the sample `.env`.
-
-## License & Contact
-
-This project is provided as-is. Add your license file if you wish to open-source it.
-
-For questions or help, open an issue or contact the maintainer.
+This project is provided as-is. Add a license file before distributing it publicly.
