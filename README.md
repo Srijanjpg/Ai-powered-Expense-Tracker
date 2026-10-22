@@ -4,6 +4,10 @@ A full-stack expense tracker for recording, categorizing, reviewing, and exporti
 
 ![Expense Tracker dashboard](demo.png)
 
+## Deployment Status
+
+The application has been deployed to an AWS EC2 instance. The production setup uses Docker, PostgreSQL, and Nginx, with the EC2 instance serving the FastAPI application.
+
 ## Features
 
 - Create, edit, and delete expenses
@@ -120,6 +124,16 @@ Copy `.env.example` to `.env` and configure the values needed for your environme
 
 Never commit `.env` or real API keys. AWS credentials can be provided through the standard AWS configuration, environment variables, or an EC2 IAM role.
 
+## AWS S3 Export Storage
+
+Expense exports are generated as CSV files and stored in a private AWS S3 bucket. When a user selects **Export CSV**, the application:
+
+1. Generates a CSV file containing the authenticated user's expenses.
+2. Uploads the file to the configured S3 bucket under `S3_EXPORT_PREFIX`.
+3. Returns a time-limited pre-signed URL for downloading the file.
+
+The EC2 deployment uses an IAM role or AWS credentials with permission to upload and download objects in the configured export path. Set `S3_BUCKET_NAME`, `AWS_REGION`, and the related S3 variables in `.env` to enable this feature.
+
 ## Using the App
 
 1. Create an account or sign in.
@@ -134,7 +148,9 @@ The FastAPI server serves the frontend and API from the same origin. Available r
 
 ## Deployment
 
-For an EC2 deployment with Docker, PostgreSQL, and Nginx, see [`DOCKER_EC2_DEPLOYMENT.md`](DOCKER_EC2_DEPLOYMENT.md).
+The application is deployed on AWS EC2 using Docker, PostgreSQL, and Nginx. AWS S3 is used for private CSV export storage and time-limited downloads.
+
+For the deployment steps and configuration details, see [`DOCKER_EC2_DEPLOYMENT.md`](DOCKER_EC2_DEPLOYMENT.md).
 
 The included [`Dockerfile`](Dockerfile) and [`docker-compose.local.yml`](docker-compose.local.yml) provide the base container setup.
 
